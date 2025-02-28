@@ -2,6 +2,7 @@ package com.example.msclients.application;
 
 import com.example.msclients.application.representaion.ClientSaveRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -11,11 +12,13 @@ import java.net.URI;
 @RestController
 @RequestMapping("clients")
 @RequiredArgsConstructor
+@Slf4j
 public class ClientResources {
     private final ClientService service;
 
     @GetMapping
     public String status() {
+        log.info("Receiving microservice client stat");
         return "ok";
     }
 
