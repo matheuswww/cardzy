@@ -1,10 +1,9 @@
 package com.example.mscreditanalyst.application;
 
+import com.example.mscreditanalyst.application.ex.CardRequestErrorException;
 import com.example.mscreditanalyst.application.ex.ClientDataNotFoundException;
 import com.example.mscreditanalyst.application.ex.MicroservicesComunicationErrorException;
-import com.example.mscreditanalyst.domain.model.ClientSituation;
-import com.example.mscreditanalyst.domain.model.EvaluationData;
-import com.example.mscreditanalyst.domain.model.ReturnClientEvaluation;
+import com.example.mscreditanalyst.domain.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +43,16 @@ public class CreditAnalystController {
         } catch (MicroservicesComunicationErrorException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.resolve(e.getStatus())).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("card-request")
+    public ResponseEntity CardRequest(@RequestBody CardIssuanceRequestData data) {
+        try {
+            CardRequestProtocol cardRequestProtocol = creditEvaluatorService.CardIssuanceRequest(data);
+            return ResponseEntity.ok(cardRequestProtocol);
+        } catch (CardRequestErrorException e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 }

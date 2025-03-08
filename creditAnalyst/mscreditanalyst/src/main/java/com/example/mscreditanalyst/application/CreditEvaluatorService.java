@@ -1,12 +1,14 @@
 package com.example.mscreditanalyst.application;
 
+import com.example.mscreditanalyst.application.ex.CardRequestErrorException;
 import com.example.mscreditanalyst.application.ex.ClientDataNotFoundException;
 import com.example.mscreditanalyst.application.ex.MicroservicesComunicationErrorException;
 import com.example.mscreditanalyst.domain.model.*;
 import com.example.mscreditanalyst.infra.clients.CardsResourceClient;
 import com.example.mscreditanalyst.infra.clients.ClientResourceClient;
+import com.example.mscreditanalyst.infra.mqueue.CardIssuanceRequestPublisher;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
-import feign.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class CreditEvaluatorService {
     private final ClientResourceClient clientsClient;
     private final CardsResourceClient cardsClient;
+    private final CardIssuanceRequestPublisher cardIssuanceRequestPublisher;
 
     public ClientSituation getClientSituation(String cpf) throws ClientDataNotFoundException, MicroservicesComunicationErrorException {
         try {
@@ -66,6 +70,16 @@ public class CreditEvaluatorService {
                 throw new ClientDataNotFoundException();
             }
             throw new MicroservicesComunicationErrorException(e.getMessage(), status);
+        }
+    }
+
+    public CardRequestProtocol CardIssuanceRequest(CardIssuanceRequestData data) {
+        try {
+            cardIssuanceRequestPublisher.RequestCard(data);
+            var protocol = UUID.randomUUID().toString();
+            return new CardRequestProtocol(protocol);
+        } catch (Exception e) {
+            throw new CardRequestErrorException(e.getMessage());
         }
     }
 }
